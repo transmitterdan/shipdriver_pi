@@ -24,14 +24,14 @@ ShipDriverBase::ShipDriverBase( wxWindow* parent, wxWindowID id, const wxString&
 	wxBoxSizer* bSizer92;
 	bSizer92 = new wxBoxSizer( wxHORIZONTAL );
 
-	m_gaugeRudderPort = new wxGauge( this, wxID_ANY, 30, wxDefaultPosition, wxSize( -1,-1 ), wxGA_HORIZONTAL );
+	m_gaugeRudderPort = new wxGauge( this, wxID_ANY, 30, wxDefaultPosition, wxDefaultSize, wxGA_HORIZONTAL );
 	m_gaugeRudderPort->SetValue( 0 );
 	m_gaugeRudderPort->SetForegroundColour( wxColour( 255, 0, 0 ) );
 	m_gaugeRudderPort->SetBackgroundColour( wxColour( 255, 0, 0 ) );
 
-	bSizer92->Add( m_gaugeRudderPort, 1, wxEXPAND|wxTOP, 5 );
+	bSizer92->Add( m_gaugeRudderPort, 1, wxBOTTOM|wxEXPAND|wxTOP, 5 );
 
-	m_gaugeRudderStbd = new wxGauge( this, wxID_ANY, 30, wxDefaultPosition, wxSize( -1,-1 ), wxGA_HORIZONTAL );
+	m_gaugeRudderStbd = new wxGauge( this, wxID_ANY, 30, wxDefaultPosition, wxDefaultSize, wxGA_HORIZONTAL );
 	m_gaugeRudderStbd->SetValue( 0 );
 	m_gaugeRudderStbd->SetForegroundColour( wxColour( 0, 255, 0 ) );
 	m_gaugeRudderStbd->SetBackgroundColour( wxColour( 0, 255, 0 ) );
@@ -78,7 +78,7 @@ ShipDriverBase::ShipDriverBase( wxWindow* parent, wxWindowID id, const wxString&
 	m_textCtrlRudderStbd = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY|wxTE_CENTER );
 	m_textCtrlRudderStbd->SetFont( wxFont( 10, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxT("Arial") ) );
 
-	bSizer131->Add( m_textCtrlRudderStbd, 0, 0, 0 );
+	bSizer131->Add(m_textCtrlRudderStbd, 0, wxALIGN_CENTER_VERTICAL, 0);
 
 
 	bSizer131->Add( 0, 0, 1, wxEXPAND, 5 );
