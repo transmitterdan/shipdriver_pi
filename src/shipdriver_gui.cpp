@@ -29,7 +29,7 @@ ShipDriverBase::ShipDriverBase( wxWindow* parent, wxWindowID id, const wxString&
 	m_gaugeRudderPort->SetForegroundColour( wxColour( 255, 0, 0 ) );
 	m_gaugeRudderPort->SetBackgroundColour( wxColour( 255, 0, 0 ) );
 
-	bSizer92->Add( m_gaugeRudderPort, 1, wxALIGN_RIGHT|wxBOTTOM|wxEXPAND|wxTOP, 5 );
+	bSizer92->Add( m_gaugeRudderPort, 1, wxEXPAND|wxTOP, 5 );
 
 	m_gaugeRudderStbd = new wxGauge( this, wxID_ANY, 30, wxDefaultPosition, wxSize( -1,-1 ), wxGA_HORIZONTAL );
 	m_gaugeRudderStbd->SetValue( 0 );
@@ -66,7 +66,7 @@ ShipDriverBase::ShipDriverBase( wxWindow* parent, wxWindowID id, const wxString&
 	m_textCtrlRudderPort = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY|wxTE_CENTER );
 	m_textCtrlRudderPort->SetFont( wxFont( 10, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxT("Arial") ) );
 
-	bSizer131->Add( m_textCtrlRudderPort, 0, wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT, 0 );
+	bSizer131->Add( m_textCtrlRudderPort, 0, wxALIGN_CENTER_VERTICAL, 0 );
 
 	m_buttonMid = new wxButton( this, wxID_ANY, _("|"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_buttonMid->SetFont( wxFont( 11, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxT("Arial") ) );
@@ -78,7 +78,7 @@ ShipDriverBase::ShipDriverBase( wxWindow* parent, wxWindowID id, const wxString&
 	m_textCtrlRudderStbd = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY|wxTE_CENTER );
 	m_textCtrlRudderStbd->SetFont( wxFont( 10, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxT("Arial") ) );
 
-	bSizer131->Add( m_textCtrlRudderStbd, 0, wxALIGN_BOTTOM|wxALIGN_CENTER_VERTICAL, 0 );
+	bSizer131->Add( m_textCtrlRudderStbd, 0, 0, 0 );
 
 
 	bSizer131->Add( 0, 0, 1, wxEXPAND, 5 );
@@ -161,10 +161,10 @@ ShipDriverBase::ShipDriverBase( wxWindow* parent, wxWindowID id, const wxString&
 	bSizer7->Add( 0, 0, 1, wxEXPAND, 5 );
 
 
-	bSizer6->Add( bSizer7, 1, wxEXPAND|wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL, 5 );
+	bSizer6->Add( bSizer7, 1, wxEXPAND, 5 );
 
 
-	bSizer14->Add( bSizer6, 1, wxEXPAND|wxALIGN_CENTER_VERTICAL, 5 );
+	bSizer14->Add( bSizer6, 1, wxEXPAND, 5 );
 
 
 	bSizer10->Add( bSizer14, 0, wxEXPAND, 5 );
@@ -300,7 +300,7 @@ ShipDriverBase::ShipDriverBase( wxWindow* parent, wxWindowID id, const wxString&
 	sbSizer3->Add( fgSizer3, 0, wxEXPAND, 5 );
 
 	wxFlexGridSizer* fgSizer5;
-	fgSizer5 = new wxFlexGridSizer( 1, 2, 0, 0 );
+	fgSizer5 = new wxFlexGridSizer(2, 0, 0 );
 	fgSizer5->AddGrowableCol( 0 );
 	fgSizer5->AddGrowableCol( 1 );
 	fgSizer5->AddGrowableRow( 0 );
