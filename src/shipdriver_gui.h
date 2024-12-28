@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version 3.10.1-0-g8feb16b3)
+// C++ code generated with wxFormBuilder (version 4.0.0-0-g0efcecf)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO *NOT* EDIT THIS FILE!
@@ -127,6 +127,7 @@ class shipdriverPreferences : public wxDialog
 		wxCheckBox* m_cbTransmitAis;
 		wxCheckBox* m_cbAisToFile;
 		wxTextCtrl* m_textCtrlMMSI;
+		wxCheckBox* m_cbNMEAToFile;
 
 		shipdriverPreferences( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Preferences"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxCAPTION|wxRESIZE_BORDER );
 

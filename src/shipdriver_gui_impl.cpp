@@ -27,6 +27,12 @@
 
 #include <stdio.h>
 
+#include "wx/wxprec.h"
+
+#ifndef WX_PRECOMP
+#include "wx/wx.h"
+#endif
+
 #include <wx/progdlg.h>
 #include <wx/textfile.h>
 #include <wx/timer.h>
@@ -34,8 +40,8 @@
 #include "wx/tglbtn.h"
 
 #include "qtstylesheet.h"
-#include "ShipDrivergui_impl.h"
-#include "ShipDriver_pi.h"
+#include "shipdriver_gui_impl.h"
+#include "shipdriver_pi.h"
 
 #ifdef __ANDROID__
 wxWindow* g_Window;
@@ -84,6 +90,9 @@ Dlg::Dlg(wxWindow* parent, wxWindowID id, const wxString& title,
   alarm_id = 999;
   m_bGotAPB = false;
 
+  wxMessageBox("Before use please disable any GNSS \nconnections in use",
+               "Avoid Conflict");
+
 #ifdef __ANDROID__
 
   m_binResize = false;
@@ -105,6 +114,7 @@ Dlg::Dlg(wxWindow* parent, wxWindowID id, const wxString& title,
     pConf->Read("shipdriverUseAis", &m_bUseAis, 0);
     pConf->Read("shipdriverUseFile", &m_bUseFile, 0);
     pConf->Read("shipdriverMMSI", &m_tMMSI, "123456789");
+    pConf->Read("shipdriverUseNMEA", &m_bUseNMEA, 0);
   }
 }
 
@@ -296,6 +306,28 @@ void Dlg::StartDriving() {
     }
   }
 
+  if (m_bUseNMEA) {
+    wxString caption = wxT("Choose a file");
+    wxString wildcard = wxT("Text files (*.txt)|*.txt|All files (*.*)|*.*");
+
+    wxString s = "/";
+    const char* pName = "ShipDriver_pi";
+    wxString defaultDir = GetPluginDataDir(pName) + s + "data" + s;
+
+    wxString defaultFilename = wxEmptyString;
+    wxFileDialog filedlg2(this->m_parent, caption, defaultDir, defaultFilename,
+                         wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (filedlg2.ShowModal() != wxID_OK) {
+      wxMessageBox(_("ShipDriver has been stopped"));
+      return;
+    } else {
+      nmeastream = new wxTextFile(filedlg2.GetPath());
+      nmeastream->Open();
+      nmeastream->Clear();
+    }
+  }
+
   m_textCtrlRudderStbd->SetValue("");
   m_textCtrlRudderPort->SetValue("");
   initSpd = 0;  // 5 knots
@@ -314,7 +346,7 @@ void Dlg::StartDriving() {
   VTG = createVTGSentence(initSpd, initDir);
 
   m_interval = 500;
-  m_Timer->Start(m_interval, wxTIMER_CONTINUOUS);  // start timer
+  m_timer->Start(m_interval, wxTIMER_CONTINUOUS);  // start timer
   m_bAuto = false;
 
   myAIS = new AisMaker();
@@ -323,7 +355,7 @@ void Dlg::StartDriving() {
 void Dlg::OnStop(wxCommandEvent& event) { SetStop(); }
 
 void Dlg::SetStop() {
-  if (m_Timer->IsRunning()) m_Timer->Stop();
+  if (m_timer->IsRunning()) m_timer->Stop();
 
   wxMessageBox(_("Vessel stopped"));
 
@@ -332,7 +364,7 @@ void Dlg::SetStop() {
   m_textCtrlRudderStbd->SetValue("");
   m_textCtrlRudderPort->SetValue("");
 
-  m_interval = m_Timer->GetInterval();
+  m_interval = m_timer->GetInterval();
   m_bUseSetTime = false;
   m_bUseStop = true;
   m_bAuto = false;
@@ -346,6 +378,10 @@ void Dlg::SetStop() {
   if (m_bUseFile) {
     nmeafile->Write();
     nmeafile->Close();
+  }
+  if (m_bUseNMEA) {
+    nmeastream->Write();
+    nmeastream->Close();
   }
   initSpd = 0.0;
   m_stSpeed->SetLabel(wxString::Format("%3.1f", initSpd));
@@ -419,6 +455,7 @@ void Dlg::SetNMEAMessage(wxString sentence) {
     token[i] = tokenizer.GetNextToken();
     i++;
   }
+
   if (token[0].Right(3) == "APB") {
     s11 = token[11];
 
@@ -444,7 +481,7 @@ void Dlg::GoToStandby() {
 // Now for the distress alarms
 
 void Dlg::OnSART(wxCommandEvent& event) {
-  if (m_Timer->IsRunning()) {
+  if (m_timer->IsRunning()) {
     bool active = m_buttonSART->GetValue();
     alarm_id = 970;
     if (active) {
@@ -462,7 +499,7 @@ void Dlg::OnSART(wxCommandEvent& event) {
 }
 
 void Dlg::OnMOB(wxCommandEvent& event) {
-  if (m_Timer->IsRunning()) {
+  if (m_timer->IsRunning()) {
     bool active = m_buttonMOB->GetValue();
     alarm_id = 972;
     if (active) {
@@ -480,7 +517,7 @@ void Dlg::OnMOB(wxCommandEvent& event) {
 }
 
 void Dlg::OnEPIRB(wxCommandEvent& event) {
-  if (m_Timer->IsRunning()) {
+  if (m_timer->IsRunning()) {
     bool active = m_buttonEPIRB->GetValue();
     alarm_id = 974;
     if (active) {
@@ -498,7 +535,7 @@ void Dlg::OnEPIRB(wxCommandEvent& event) {
 }
 
 void Dlg::OnDistressAlert(wxCommandEvent& event) {
-  if (m_Timer->IsRunning()) {
+  if (m_timer->IsRunning()) {
     bool active = m_buttonDistressAlert->GetValue();
     alarm_id = 980;
     if (active) {
@@ -514,7 +551,7 @@ void Dlg::OnDistressAlert(wxCommandEvent& event) {
 }
 
 void Dlg::OnDistressCancel(wxCommandEvent& event) {
-  if (m_Timer->IsRunning()) {
+  if (m_timer->IsRunning()) {
     bool active = m_buttonDistressCancel->GetValue();
     alarm_id = 982;
     if (active) {
@@ -538,7 +575,7 @@ void Dlg::OnDistressCancel(wxCommandEvent& event) {
 }
 
 void Dlg::OnDistressRelay(wxCommandEvent& event) {
-  if (m_Timer->IsRunning()) {
+  if (m_timer->IsRunning()) {
     bool active = m_buttonDistressRelay->GetValue();
     alarm_id = 984;
     if (active) {
@@ -554,7 +591,7 @@ void Dlg::OnDistressRelay(wxCommandEvent& event) {
 }
 
 void Dlg::OnRelayCancel(wxCommandEvent& event) {
-  if (m_Timer->IsRunning()) {
+  if (m_timer->IsRunning()) {
     bool active = m_buttonRelayCancel->GetValue();
     alarm_id = 986;
     if (active) {
@@ -578,7 +615,7 @@ void Dlg::OnRelayCancel(wxCommandEvent& event) {
 }
 
 void Dlg::OnCollision(wxCommandEvent& event) {
-  if (m_Timer->IsRunning()) {
+  if (m_timer->IsRunning()) {
     bool active = m_buttonCollision->GetValue();
     alarm_id = 990;
     if (active) {
@@ -601,7 +638,7 @@ void Dlg::OnCollision(wxCommandEvent& event) {
 void Dlg::OnPause(wxCommandEvent& event) {
   bool active = m_buttonPause->GetValue();
   if (active) {
-    m_Timer->Stop();
+    m_timer->Stop();
     m_buttonPause->SetLabel("Resume");
     m_buttonPause->SetBackgroundColour(wxColour(255, 0, 0));
   } else {
@@ -618,7 +655,7 @@ void Dlg::ResetPauseButton() {
 }
 
 void Dlg::OnClose(wxCloseEvent& event) {
-  if (m_Timer->IsRunning()) m_Timer->Stop();
+  if (m_timer->IsRunning()) m_timer->Stop();
   plugin->OnShipDriverDialogClose();
 }
 void Dlg::Notify() {
@@ -826,7 +863,7 @@ void Dlg::Notify() {
   if (m_bGrib && m_bUsingWind) {
     MWVT = createMWVTSentence(initSpd, myDir, wdir, wspd);
     MWVA = createMWVASentence(initSpd, myDir, wdir, wspd);
-    //MWD = createMWDSentence(wdir, wspd);
+    // MWD = createMWDSentence(wdir, wspd);
 
     PushNMEABuffer(MWVA + "\r\n");
     PushNMEABuffer(MWVT + "\r\n");
@@ -848,6 +885,22 @@ void Dlg::Notify() {
   if (m_bUseAis) {
     PushNMEABuffer(myNMEAais + "\r\n");
   }
+
+  wxString rn = "\r\n";
+ 
+  if (m_bUseAis && m_bUseNMEA) {
+    nmeastream->AddLine(myNMEAais + rn);
+  }
+  if (m_bUseNMEA) {
+    nmeastream->AddLine(GLL + "\r\n");
+    nmeastream->AddLine(VTG + "\r\n");
+    nmeastream->AddLine(VHW + "\r\n");
+    nmeastream->AddLine(RMC + "\r\n");
+    nmeastream->AddLine(HDT + "\r\n");
+  }
+
+ 
+
   initLat = stepLat;
   initLon = stepLon;
 
@@ -858,8 +911,8 @@ void Dlg::Notify() {
 
 void Dlg::SetInterval(int interval) {
   m_interval = interval;
-  if (m_Timer->IsRunning())  // Timer started?
-    m_Timer->Start(m_interval,
+  if (m_timer->IsRunning())  // Timer started?
+    m_timer->Start(m_interval,
                    wxTIMER_CONTINUOUS);  // restart timer with new interval
 }
 
@@ -962,8 +1015,8 @@ wxString Dlg::createVHWSentence(double stw, double hdg) {
   nSpd = wxString::Format("%f", stw);
   nDir = wxString::Format("%f", hdg);
 
-  nForCheckSum = nVHW + nC + nDir + nC + nTrue + nC + nC + nMag + nC + nSpd + nC + nUnits +
-                 nC + nC + "K";
+  nForCheckSum = nVHW + nC + nDir + nC + nTrue + nC + nC + nMag + nC + nSpd +
+                 nC + nUnits + nC + nC + "K";
   nFinal = ndlr + nForCheckSum + nast + makeCheckSum(nForCheckSum);
   return nFinal;
 }
@@ -1182,7 +1235,7 @@ wxString Dlg::createRMCSentence(wxDateTime myDateTime, double myLat,
   nDate = DateTimeToDateString(myDateTime);
 
   nForCheckSum =
-      nRMC + nTime + nC + nNS + nEW + nSpd + nC + nDir + nC + nDate + ",,,A";
+      nRMC + nTime + nC + nA + nNS + nEW + nSpd + nC + nDir + nC + nDate + ",,";
   nFinal = ndlr + nForCheckSum + nast + makeCheckSum(nForCheckSum);
   return nFinal;
 }
@@ -1798,7 +1851,7 @@ bool Dlg::GetGribSpdDir(wxDateTime dt, double lat, double lon, double& spd,
   plugin->m_grib_lat = lat;
   plugin->m_grib_lon = lon;
   RequestGrib(dtime);
-  if (plugin->m_bGribValid) {
+  if (plugin->m_is_grib_valid) {
     spd = plugin->m_tr_spd;
     dir = plugin->m_tr_dir;
     return true;
@@ -2084,7 +2137,7 @@ void Dlg::OnFollow(wxCommandEvent& event) {
 
   GetRouteDialog RouteDialog(this, -1, _("Select the route to follow"),
                              wxPoint(200, 200), wxSize(300, 200),
-                             wxRESIZE_BORDER);
+                             wxCAPTION | wxRESIZE_BORDER);
 
   RouteDialog.dialogText->InsertColumn(0, "", 0, wxLIST_AUTOSIZE);
   RouteDialog.dialogText->SetColumnWidth(0, 290);
